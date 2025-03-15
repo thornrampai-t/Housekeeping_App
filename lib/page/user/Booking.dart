@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:project/function/durationdate.dart';
 import 'package:project/provider/authProvider.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 import 'package:project/widget/servicetypehistorywidget.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +26,7 @@ class _BookingPageState extends State<BookingPage> {
         children: [
           Expanded(
             child: StreamBuilder(
-              stream: firestoreService.getHistoryCustomerStream(
+              stream: firestoreService.getHistoryandBookmarkCustomerStream(
                 Provider.of<UserProvider>(context, listen: false).userId,
               ), // กำหนด userName ที่ต้องการ
               builder: (context, snapshot) {
@@ -56,7 +56,7 @@ class _BookingPageState extends State<BookingPage> {
                             Map<String, dynamic> booking =
                                 bookingHistory[i]; // ดึง Map ของแต่ละรายการ
                             String employeeName = booking['empolyeeName'];
-                                                    StreamBuilder<String>(
+                            StreamBuilder<String>(
                             stream: firestoreService.getServiceTypeStream(employeeName),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {

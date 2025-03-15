@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project/page/user/employee.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 
 class ServicePage extends StatefulWidget {
   final String selectPosition;
@@ -20,13 +20,13 @@ class _ServicePageState extends State<ServicePage> {
 
   Stream<QuerySnapshot> getEmployeesStream() {
     switch (widget.selectPosition) {
-      case 'Deep Clean':
+      case 'แม่บ้าน':
         return firestoreService.getWhereDeepCleanStream();
-      case 'Garden':
+      case 'คนสวน':
         return firestoreService.getWhereGardenStream();
-      case 'Care':
+      case 'ดูแลผู้สูงอายุ':
         return firestoreService.getWhereCareStream();
-      case 'Pet':
+      case 'ดูแลสัตว์':
         return firestoreService.getWherePetStream();
       default:
         return Stream.empty(); // ถ้าไม่ตรงกับตำแหน่งที่กำหนด ให้ส่งค่าเป็น Stream ว่าง
@@ -69,9 +69,9 @@ class _ServicePageState extends State<ServicePage> {
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
                       var doc = snapshot.data!.docs[index];
-                      String image = doc['photo'];
+                      String image = doc['imageUrl'];
                       String name = doc['name'] ?? 'Unknown';
-                      String type = doc['position'] ?? '';
+                      String type = doc['serviceType'] ?? '';
 
                       return InkWell(
                         onTap: () {

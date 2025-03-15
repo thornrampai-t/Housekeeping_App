@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,6 +7,9 @@ import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/place_type.dart';
 import 'package:google_places_flutter/model/prediction.dart';
 import 'package:project/function/map.dart';
+import 'package:project/provider/authProvider.dart';
+import 'package:project/service/firestore.dart';
+import 'package:provider/provider.dart';
 
 class MapBookMark extends StatefulWidget {
   const MapBookMark({super.key});
@@ -24,6 +28,41 @@ class _MapBookMarkState extends State<MapBookMark> {
   List<Prediction> predictions = []; // ลิสต์สถานที่แนะนำที่จะแสดง
   String? _address;
   String ggAPI = 'AIzaSyAtiVZyXeDK7CGXAbooOJojX4jBZEMHPIw';
+
+  final TextEditingController nameController =
+      TextEditingController(); // สำหรับชื่อสถานที่
+  List<Map<String, dynamic>> savedAddresses =
+      []; // เก็บที่อยู่พร้อมชื่อและตำแหน่ง
+
+  final FirestoreService firestoreService = FirestoreService();
+  LatLng? position_tap;
+  final _formKey = GlobalKey<FormState>();
+
+  Future<void> saveAddress(
+    String userId,
+    String nameAddress,
+    String addaddress,
+    LatLng position,
+  ) async {
+    print(userId);
+    Map<String, dynamic> listMarkLocation = {
+      'name': nameAddress,
+      'address': addaddress,
+      'position': GeoPoint(
+        position_tap!.latitude,
+        position_tap!.longitude,
+      ), // ใช้ GeoPoint เพื่อเก็บข้อมูลตำแหน่งใน Firestore
+    };
+    print(listMarkLocation);
+
+    // เรียกฟังก์ชัน addBookLocation เพื่อบันทึกข้อมูล
+    try {
+      await firestoreService.addBookLocation(userId, listMarkLocation);
+      print("ข้อมูลการจองถูกบันทึกสำเร็จ");
+    } catch (e) {
+      print("เกิดข้อผิดพลาดในการบันทึกข้อมูล: $e");
+    }
+  }
 
   void _selectLocationFromMap(LatLng position) async {
     String address = await GeocodingService.getAddressFromLatLng(
@@ -128,6 +167,7 @@ class _MapBookMarkState extends State<MapBookMark> {
 
   @override
   Widget build(BuildContext context) {
+    final userId = Provider.of<UserProvider>(context).userId;
     return Scaffold(
       appBar: AppBar(title: Text('บันทึกสถานที่')),
       body: Stack(
@@ -146,9 +186,10 @@ class _MapBookMarkState extends State<MapBookMark> {
                 zoom: 13,
               ),
 
-              onTap: (LatLng position) {
+              onTap: (LatLng tappedLocation) {
                 // เมื่อผู้ใช้คลิกที่ตำแหน่งในแผนที่
-                _selectLocationFromMap(position);
+                _selectLocationFromMap(tappedLocation);
+                position_tap = tappedLocation;
               },
             ),
           ),
@@ -202,6 +243,7 @@ class _MapBookMarkState extends State<MapBookMark> {
                       String _address = prediction.description.toString();
                       print("Clicked on: ${prediction.description}");
                       _updateMarkerPosition(prediction);
+                      
                     },
                     child: Container(
                       padding: EdgeInsets.all(10),
@@ -250,7 +292,7 @@ class _MapBookMarkState extends State<MapBookMark> {
                 );
                 setState(() {
                   _address = address;
-                 ;
+                  ;
                 });
               },
               child: Icon(Icons.location_searching_rounded),
@@ -261,34 +303,98 @@ class _MapBookMarkState extends State<MapBookMark> {
             left: 20,
             child: FloatingActionButton(
               heroTag: 'bookmarker_location',
-              backgroundColor: Colors.white,
+              backgroundColor: Colors.blueGrey,
               foregroundColor: Colors.indigo,
               onPressed: () async {
-                Position position = await currentPosition();
-                googleMapController.animateCamera(
-                  CameraUpdate.newCameraPosition(
-                    CameraPosition(
-                      target: LatLng(position.latitude, position.longitude),
-                      zoom: 13,
-                    ),
-                  ),
-                );
-                marker.clear();
-                marker.add(
-                  Marker(
-                    markerId: const MarkerId("This is my Location"),
-                    position: LatLng(position.latitude, position.longitude),
-                  ),
-                );
                 String address = await GeocodingService.getAddressFromLatLng(
-                  position.latitude,
-                  position.longitude,
+                  position_tap!.latitude,
+                  position_tap!.longitude,
                 );
-                setState(() {
-                  _address = address;
-                });
+                showDialog(
+                  context: context,
+
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("ข้อมูลตำแหน่ง"),
+                      content: SizedBox(
+                        width: 300,
+                        child: Form(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(
+                                address ??
+                                    "ที่อยู่ไม่พร้อมใช้งาน", // ถ้า _address เป็น null แสดงข้อความนี้แทน
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              SizedBox(height: 3),
+                              TextFormField(
+                                controller: nameController,
+                                decoration: InputDecoration(
+                                  labelText: 'ชื่อสถานที่',
+                                  hintText: 'กรุณากรอกชื่อสถานที่',
+                                  border: UnderlineInputBorder(), // ขีดเส้นใต้
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.grey,
+                                      width: 2.0,
+                                    ), // สีและความหนาของขีดเส้นใต้เมื่อมีการโฟกัส
+                                  ),
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.grey,
+                                      width: 1.0,
+                                    ), // สีและความหนาของขีดเส้นใต้ในสถานะปกติ
+                                  ),
+                                  labelStyle: TextStyle(
+                                    color: Colors.black,
+                                  ), // สีของ label
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey,
+                                  ), // สีของ hint
+                                ),
+                                style: TextStyle(
+                                  fontSize: 15.0,
+                                  color: Colors.black,
+                                ), // ปรับสีข้อความที่กรอก
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // ปิด dialog
+                          },
+                          child: Text('ยกเลิก'),
+                        ),
+                        TextButton(
+                          child: Text("เพิ่ม"),
+                          onPressed: () {
+                            String _nameAddress = nameController.text;
+                            saveAddress(
+                              userId,
+                              _nameAddress,
+                              address,
+                              position_tap!,
+                            );
+                            Navigator.pop(context);
+                            nameController.clear();
+                          },
+                        ),
+                      ],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10), // มุมโค้ง
+                      ),
+                    );
+                  },
+                );
               },
-              child: Icon(Icons.location_searching_rounded),
+              child: Icon(Icons.add_location_alt_rounded, color: Colors.white),
             ),
           ),
         ],

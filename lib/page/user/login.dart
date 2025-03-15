@@ -9,7 +9,7 @@ import 'package:project/Data/customer.dart' show Customer;
 import 'package:project/page/user/home.dart';
 import 'package:project/page/user/register.dart';
 import 'package:project/provider/authProvider.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -4,7 +4,7 @@ import 'package:project/Data/promotion.dart';
 import 'package:project/page/user/pay_Success.dart';
 import 'package:project/page/user/promotion.dart';
 import 'package:project/provider/authProvider.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 import 'package:provider/provider.dart';
 
 class PaymentPage extends StatefulWidget {

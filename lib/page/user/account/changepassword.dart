@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project/function/checktypelogin.dart';
 import 'package:project/provider/authProvider.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 import 'package:provider/provider.dart';
 
 class ChangePasswordPage extends StatefulWidget {

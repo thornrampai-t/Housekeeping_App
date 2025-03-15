@@ -4,7 +4,7 @@ import 'package:project/page/user/account/changepassword.dart';
 import 'package:project/page/user/account/editprofile.dart';
 import 'package:project/page/user/login.dart';
 import 'package:project/provider/authProvider.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 import 'package:provider/provider.dart';
 
 class AccountPage extends StatefulWidget {

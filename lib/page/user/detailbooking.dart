@@ -22,10 +22,16 @@ class _DetailBookingPageState extends State<DetailBookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('ที่อยู่ ${widget.address}'),
-        backgroundColor: Color.fromARGB(255, 25, 98, 47),
+      appBar: 
+        AppBar(
+        centerTitle: false,
+          title: Text('ที่อยู่ ${widget.address}',style: TextStyle(color: Colors.white),), // ✅ อัปเดต title ตาม index
+        backgroundColor: const Color.fromARGB(255, 25, 98, 47),
+
+        elevation: 4.0,
+        shadowColor: Colors.black.withOpacity(1),
       ),
+       
       backgroundColor: Color.fromARGB(255, 243, 247, 222),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -294,7 +300,7 @@ class _DetailBookingPageState extends State<DetailBookingPage> {
                 ;
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[300],
+                backgroundColor: const Color.fromARGB(255, 25, 98, 47),
                 minimumSize: Size(double.infinity, 70),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
@@ -303,8 +309,8 @@ class _DetailBookingPageState extends State<DetailBookingPage> {
               child: Text(
                 'Next',
                 style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
+                  color: Colors.white,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),

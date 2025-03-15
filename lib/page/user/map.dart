@@ -146,7 +146,17 @@ class _MapPageState extends State<MapPage> {
     final panelHeightOpne =
         MediaQuery.of(context).size.height * 0.5; // panel ที่แสดงให้เห็น
     return Scaffold(
-      appBar: AppBar(title: const Text('เลือกสถานที่')),
+      appBar: AppBar(
+        centerTitle: false,
+        title: Text(
+          'เลือกสถานที่',
+          style: TextStyle(color: Colors.white),
+        ), // ✅ อัปเดต title ตาม index
+        backgroundColor: const Color.fromARGB(255, 25, 98, 47),
+
+        elevation: 4.0,
+        shadowColor: Colors.black.withOpacity(1),
+      ),
       backgroundColor: Color.fromARGB(255, 243, 247, 222),
       body: Stack(
         children: [
@@ -261,7 +271,7 @@ class _MapPageState extends State<MapPage> {
               right: 20,
               child: FloatingActionButton(
                 heroTag: 'current_location_button',
-                backgroundColor: Colors.white,
+                backgroundColor: Color.fromARGB(255, 25, 98, 47),
                 foregroundColor: Colors.indigo,
                 onPressed: () async {
                   Position position = await currentPosition();
@@ -288,7 +298,7 @@ class _MapPageState extends State<MapPage> {
                     _address = address;
                   });
                 },
-                child: Icon(Icons.location_searching_rounded),
+                child: Icon(Icons.location_searching_rounded,color: Colors.white,),
               ),
             ),
         ],

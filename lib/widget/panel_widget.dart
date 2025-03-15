@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:project/Data/marker_data.dart';
-import 'package:project/function/map.dart';
 import 'package:project/page/user/detailbooking.dart';
+import 'package:project/provider/authProvider.dart';
+import 'package:project/service/firestore.dart';
+import 'package:provider/provider.dart';
 
 class PanelWidget extends StatefulWidget {
-  final List<MarkerData> markers; // รายการสถานที่ที่บันทึกไว้
-  String? selectedPosition; // สถานที่ที่ถูกเลือกในปัจจุบัน
+  final List<MarkerData> markers;
+  String? selectedPosition;
   final void Function(String, LatLng) onSelectLocation;
+
+
+  
+
+
 
   PanelWidget({
     super.key,
@@ -21,24 +28,23 @@ class PanelWidget extends StatefulWidget {
 }
 
 class _PanelWidgetState extends State<PanelWidget> {
+  final FirestoreService firestoreService = FirestoreService();
   int? selectedIndex;
   String? selectedAddress;
 
-  // ฟังก์ชันเพื่อตรวจสอบตำแหน่งที่เลือกสุดท้าย
   String? get finalSelectedAddress {
     if (widget.selectedPosition != null) {
       return widget.selectedPosition; // ใช้ตำแหน่งจากการปักหมุด
     }
     return selectedAddress; // ใช้ที่อยู่จากการเลือก radio
   }
+  
 
-  // เอาไว้ รีซีต สี radio เมื่อเปลี่ยนไปเลือกตน.บน
   @override
   void didUpdateWidget(covariant PanelWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedPosition != null &&
         widget.selectedPosition != oldWidget.selectedPosition) {
-      // รีเซ็ตค่าการเลือก Radio หากเปลี่ยนตำแหน่งจากแผนที่
       setState(() {
         selectedIndex = null;
         selectedAddress = widget.selectedPosition;
@@ -63,59 +69,80 @@ class _PanelWidgetState extends State<PanelWidget> {
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: ListView.builder(
-                  itemCount: widget.markers.length,
-                  itemBuilder: (context, index) {
-                    final marker = widget.markers[index];
-                    return FutureBuilder<String>(
-                      future: GeocodingService.getAddressFromLatLng(
-                        marker.position.latitude,
-                        marker.position.longitude,
-                      ),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Text(
-                            'ไม่สามารถแปลงที่อยู่ได้: ${snapshot.error}',
-                          );
-                        }
-                        return Card(
-                          color: Colors.white,
-                          child: ListTile(
-                            leading: Radio<int>(
-                              value: index,
-                              activeColor: Colors.green[700],
-                              groupValue: selectedIndex,
-                              onChanged: (int? value) {
-                                setState(() {
-                                  selectedIndex = value;
-                                  final marker = widget.markers[value ?? 0];
-                                  selectedAddress =
-                                      snapshot.data ?? "ไม่พบข้อมูลที่อยู่";
-                                  widget.onSelectLocation(
-                                    selectedAddress ?? "",
-                                    marker.position,
-                                  );
-                                });
+                child: StreamBuilder(
+                  stream: firestoreService.getHistoryandBookmarkCustomerStream(
+                    Provider.of<UserProvider>(context, listen: false).userId,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return Center(child: Text("ไม่มีข้อมูลสถานที่ที่บันทึกไว้"));
+                    }
+
+                    var docs = snapshot.data!.docs;
+                    return ListView.builder(
+                      padding: EdgeInsets.only(bottom: 4),
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        var data = docs[index].data() as Map<String, dynamic>;
+                        List bookMarks = (data['addresses'] as List?) ?? [];
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 5),
+                            ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: bookMarks.length,
+                              itemBuilder: (context, i) {
+                                var bookMarkItem = bookMarks[i] as Map<String, dynamic>;
+                                String namePosition = bookMarkItem['name'] ?? "ไม่มีชื่อสถานที่";
+                                String nameAddress = bookMarkItem['address'] ?? "ไม่มีที่อยู่";
+                                double lat = bookMarkItem['lat'] ?? 0.0;
+                                double lng = bookMarkItem['lng'] ?? 0.0;
+                                LatLng position = LatLng(lat, lng);
+                                int radioValue = index * 100 + i;
+
+                                return Card(
+                                  color: Colors.white,
+                                  child: ListTile(
+                                    leading: Radio<int>(
+                                      value: radioValue,
+                                      groupValue: selectedIndex,
+                                      activeColor: Colors.green[700],
+                                    onChanged: (int? value) {
+  setState(() {
+    selectedIndex = value;
+    selectedAddress = nameAddress;
+  });
+
+  Future.delayed(Duration.zero, () {
+    widget.onSelectLocation(nameAddress, position);
+  });
+},
+
+
+                                    ),
+                                    title: Text(
+                                      namePosition,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      'ที่อยู่: $nameAddress',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                );
                               },
                             ),
-                            title: Text(
-                              marker.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: Text(
-                              'ที่อยู่: ${snapshot.data ?? "ไม่พบข้อมูลที่อยู่"}',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
+                          ],
                         );
                       },
                     );
@@ -127,7 +154,7 @@ class _PanelWidgetState extends State<PanelWidget> {
         ),
         Positioned(
           right: 16,
-          bottom: 16,
+          bottom: 65,
           child: ElevatedButton(
             onPressed: () {
               final address = finalSelectedAddress;
@@ -163,13 +190,13 @@ class _PanelWidgetState extends State<PanelWidget> {
   }
 
   Widget buildDragHandle() => Center(
-    child: Container(
-      width: 36,
-      height: 7,
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(12),
-      ),
-    ),
-  );
+        child: Container(
+          width: 36,
+          height: 7,
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
 }

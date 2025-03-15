@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:project/page/user/map.dart';
 import 'package:project/provider/authProvider.dart';
+import 'package:project/service/firestore.dart';
 import 'package:provider/provider.dart';
 
-class EmployeePage extends StatelessWidget {
+class EmployeePage extends StatefulWidget {
   String name;
   String image;
   String type;
@@ -15,7 +16,18 @@ class EmployeePage extends StatelessWidget {
   });
 
   @override
+  State<EmployeePage> createState() => _EmployeePageState();
+}
+
+class _EmployeePageState extends State<EmployeePage> {
+    late Stream<String> imageStream;
+
+  FirestoreService firestoreService = FirestoreService();
+  @override
   Widget build(BuildContext context) {
+    final userId = Provider.of<UserProvider>(context).userId;
+    imageStream = firestoreService.getImageCustomerStream(userId);
+
     return Scaffold(
       backgroundColor: Color.fromARGB(255, 243, 247, 222),
       body: Column(
@@ -24,7 +36,7 @@ class EmployeePage extends StatelessWidget {
             children: [
               Container(
                 padding: EdgeInsets.only(top: 80, left: 70),
-                child: Image.network(image, height: 250, width: 250),
+                child: Image.network(widget.image, height: 250, width: 250),
               ),
 
               Container(
@@ -53,7 +65,7 @@ class EmployeePage extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
 
-              child: Text(type, style: TextStyle(fontSize: 20)),
+              child: Text(widget.type, style: TextStyle(fontSize: 20)),
             ),
           ),
           SizedBox(height: 5),
@@ -70,7 +82,7 @@ class EmployeePage extends StatelessWidget {
                 ),
                 child: ClipOval(
                   child: Image.network(
-                    image,
+                    widget.image,
                     fit: BoxFit.cover, // ให้รูปเต็มพื้นที่วงกลม
                   ),
                 ),
@@ -80,7 +92,7 @@ class EmployeePage extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: TextStyle(fontSize: 18)),
+                  Text(widget.name, style: TextStyle(fontSize: 18)),
                   Icon(Icons.star),
                 ],
               ),
@@ -89,7 +101,7 @@ class EmployeePage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                  var customerProvider = Provider.of<empolyeeProvider>(context, listen: false); // Set listen: false to avoid rebuilding the widget unnecessarily
-                  customerProvider.setempolyeeName(name);
+                  customerProvider.setempolyeeName(widget.name);
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => MapPage()),
@@ -105,6 +117,69 @@ class EmployeePage extends StatelessWidget {
               SizedBox(width: 10),
             ],
           ),
+         SizedBox(height: 30,),
+          Stack(
+            children: [
+              //ListView.builder(itemBuilder: itemBuilder)
+              Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned(
+                    child: 
+                       Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(13),
+                          color: Colors.grey.shade400
+                        ),
+                        height: 150,
+                        width: 340,
+                          
+                    
+                        
+                      ),
+                    ),
+                  
+                  StreamBuilder<String>(
+                            stream: imageStream, // ใช้ stream ที่เราสร้าง
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return CircularProgressIndicator(); // แสดงขณะรอข้อมูล
+                              } else if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              } else if (snapshot.hasData) {
+                                String imageUrl =
+                                    snapshot.data ?? 'ไม่พบข้อมูล';
+                                return imageUrl == 'ไม่พบข้อมูล'
+                                    ? Text(imageUrl)
+                                    : Flexible(
+                                      child: Container(
+                                        width: 80, // กำหนดขนาดของวงกลม
+                                        height: 80.0,
+                                        decoration: BoxDecoration(
+                                          shape:
+                                              BoxShape
+                                                  .circle, // ทำให้รูปทรงเป็นวงกลม
+                                          image: DecorationImage(
+                                            image: NetworkImage(imageUrl),
+                                            fit:
+                                                BoxFit
+                                                    .cover, // ทำให้ภาพครอบคลุมพื้นที่ในวงกลม
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                              } else {
+                                return Text('ไม่พบข้อมูล');
+                              }
+                            },
+                          ),
+                ],
+              ),
+             
+              ElevatedButton(onPressed: (){}, child: Text('ssss'))
+            ],
+          )
         ],
       ),
     );

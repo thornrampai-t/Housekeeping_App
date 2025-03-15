@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:project/firebase_options.dart';
-import 'package:project/page/user/account/mapbookmark.dart';
 import 'package:project/page/user/login.dart';
 import 'package:project/provider/authProvider.dart';
 import 'package:provider/provider.dart';

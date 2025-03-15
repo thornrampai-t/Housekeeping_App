@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 Widget getServiceTypeWidget(String position) {
-  if (position == 'Deep Clean') {
+  if (position == 'แม่บ้าน') {
     return Container(
       width: 65, // กำหนดขนาดความกว้าง
       height: 65, // กำหนดขนาดความสูง
@@ -11,7 +11,7 @@ Widget getServiceTypeWidget(String position) {
       ),
       child: Center(child: Image.asset('assets/icon/clean.png',height: 40)),
     );
-  } else if (position == 'Garden') {
+  } else if (position == 'คนสวน') {
     return Container(
       width: 65, // กำหนดขนาดความกว้าง
       height: 65, // กำหนดขนาดความสูง
@@ -21,7 +21,7 @@ Widget getServiceTypeWidget(String position) {
       ),
       child: Center(child: Image.asset('assets/icon/can-drop.png',height: 40)),
     );
-  } else if (position == 'Care') {
+  } else if (position == 'ดูแลผู้สูงอายุ') {
     return Container(
       width: 65, // กำหนดขนาดความกว้าง
       height: 65, // กำหนดขนาดความสูง
@@ -31,7 +31,7 @@ Widget getServiceTypeWidget(String position) {
       ),
       child: Center(child: Image.asset('assets/icon/Wheelchair.png',height: 40)),
     );
-  } else if (position == 'Pet') {
+  } else if (position == 'ดูแลสัตว์') {
     return Container(
       width: 65, // กำหนดขนาดความกว้าง
       height: 65, // กำหนดขนาดความสูง

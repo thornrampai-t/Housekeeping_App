@@ -4,7 +4,7 @@ import 'package:project/function/checktypelogin.dart';
 import 'package:project/function/updateimage.dart';
 import 'package:project/page/user/account/account.dart';
 import 'package:project/provider/authProvider.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 import 'package:provider/provider.dart';
 
 class EditProfilePage extends StatefulWidget {
