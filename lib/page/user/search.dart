@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:project/page/user/employee.dart';
-import 'package:project/service.dart/firestore.dart';
+import 'package:project/service/firestore.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -63,83 +63,102 @@ class _SearchPageState extends State<SearchPage> {
                   itemCount: employees.length,
                   itemBuilder: (context, index) {
                     var doc = employees[index];
-                    String image = doc['photo'];
+                    String imagePath =
+                        doc['imageUrl']; // Path ของไฟล์ใน Storage
                     String name = doc['name'] ?? 'Unknown';
-                    String type = doc['position'] ?? '';
+                    String type = doc['serviceType'] ?? '';
+                   
+                    return FutureBuilder<String>(
+                      future: firestoreService.getImageEmpolyee(
+                        imagePath,
+                      ), // ดึง URL ของรูปจาก Storage
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return SizedBox.shrink(); // โหลด URL อยู่
+                        }
 
-                    return InkWell(
-                      onTap: () {
-                        // เมื่อคลิกที่รายการให้ไปที่หน้า EmployeePage
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => EmployeePage(
-                                  name: name,
-                                  image: image,
-                                  type: type,
-                                ),
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 25),
-                        child: Center(
-                          child: SizedBox(
-                            height: 300,
-                            width: 300,
-                            child: Card(
-                              elevation: 5,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
+                        String imageUrl = snapshot.data!;
+
+                        return InkWell(
+                          onTap: () {
+                            // ไปที่หน้า EmployeePage
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => EmployeePage(
+                                      name: name,
+                                      image: imageUrl,
+                                      type: type,
+                                    ),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.topLeft,
-                                      child: Row(
-                                        children: [
-                                          Icon(Icons.star, color: Colors.amber),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            '5 star', // ปรับตามข้อมูลจริง
-                                            style: TextStyle(fontSize: 16),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 25),
+                            child: Center(
+                              child: SizedBox(
+                                height: 300,
+                                width: 300,
+                                child: Card(
+                                  elevation: 5,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.max,
+                                      children: [
+                                        Align(
+                                          alignment: Alignment.topLeft,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.star,
+                                                color: Colors.amber,
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                '5 star', // ปรับตามข้อมูลจริง
+                                                style: TextStyle(fontSize: 16),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        SizedBox(height: 5),
+                                        CircleAvatar(
+                                          backgroundColor: Colors.grey,
+                                          radius: 70,
+                                          backgroundImage: NetworkImage(
+                                            imageUrl,
+                                          ),
+                                        ),
+                                        SizedBox(height: 15),
+                                        Text(
+                                          name,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 15),
+                                        Text(
+                                          type,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    SizedBox(height: 5),
-                                    CircleAvatar(
-                                      backgroundColor: Colors.grey,
-                                      radius: 70,
-                                      backgroundImage: NetworkImage(image),
-                                    ),
-                                    SizedBox(height: 15),
-                                    Text(
-                                      name,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 15),
-                                    Text(
-                                      type,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     );
                   },
                 );
