@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:project/firebase_options.dart';
-import 'package:project/page/user/login.dart';
+import 'package:project/page/Customer/login.dart';
 import 'package:project/provider/authProvider.dart';
+import 'package:project/provider/theme_provider.dart';
+import 'package:project/widget/theme.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -11,10 +13,11 @@ void main() async {
 
   runApp(MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => UserProvider()),
-        ChangeNotifierProvider(create: (context) => empolyeeProvider()),
+        ChangeNotifierProvider(create: (context) => idAllAccountProvider()),
+        ChangeNotifierProvider(create: (context) => employeeProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
-      child: MyApp(),));
+      child: MyApp(),));    
 }
 
 class MyApp extends StatefulWidget {
@@ -31,7 +34,8 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-
+      theme: Provider.of<ThemeProvider>(context).themeData,
+      darkTheme: darkMode,
       //home: const HomePage(),
       // home: LoginUserPage(),
       // home: MapBookMark(),

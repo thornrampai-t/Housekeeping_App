@@ -60,14 +60,7 @@ class SelectableContainer extends StatelessWidget {
               child: Text(subtitle, style: TextStyle(fontSize: 14, color: Colors.black)),
             ),
             SizedBox(height: 6),
-            // Text(
-            //   'ราคา: ${price.toStringAsFixed(2)} บาท',
-            //   style: TextStyle(
-            //     fontSize: 16,
-            //     fontWeight: FontWeight.bold,
-            //     color: isSelected ? Colors.blue : Colors.black,
-            //   ),
-            // ),
+
           ],
         ),
       ),
